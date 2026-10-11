@@ -15,6 +15,7 @@ class NimRunConfigurationEditor : SettingsEditor<NimRunConfiguration>() {
         filePathField.addBrowseFolderListener(
             null,
             FileChooserDescriptor(true, false, false, false, false, false)
+                .withFileFilter { isNimSourceFile(it.extension) }
                 .withTitle("Select Nim File")
         )
         workingDirectoryField.addBrowseFolderListener(
@@ -36,7 +37,7 @@ class NimRunConfigurationEditor : SettingsEditor<NimRunConfiguration>() {
 
     override fun createEditor(): JComponent = panel {
         row("Nim file:") {
-            cell(filePathField).align(AlignX.FILL)
+            cell(filePathField).align(AlignX.FILL).comment("Run with nim r")
         }
         row("Working directory:") {
             cell(workingDirectoryField).align(AlignX.FILL)
