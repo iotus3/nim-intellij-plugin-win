@@ -25,8 +25,8 @@ DIGIT        = [0-9]
 HEXDIGIT     = [0-9a-fA-F]
 OCTDIGIT     = [0-7]
 BINDIGIT     = [01]
-LETTER       = [a-zA-Z-￿]
-IDENT_CONT   = [a-zA-Z0-9_-￿]
+LETTER       = [a-zA-Z\u0080-\uFFFE]
+IDENT_CONT   = [a-zA-Z0-9_\u0080-\uFFFE]
 
 // Numeric suffixes
 INT_SUFFIX   = "'" ("i8"|"i16"|"i32"|"i64"|"u"|"u8"|"u16"|"u32"|"u64")
@@ -102,7 +102,7 @@ KEYWORD = "addr"|"and"|"as"|"asm"|"bind"|"block"|"break"|"case"|"cast"|"concept"
 <YYINITIAL> "`" [^`]+ "`"                 { return NimTokenTypes.IDENTIFIER; }
 
 // --- Keywords (matched before identifier) ---
-<YYINITIAL> {KEYWORD} / [^a-zA-Z0-9_-￿] { return NimTokenTypes.KEYWORD; }
+<YYINITIAL> {KEYWORD} / [^a-zA-Z0-9_\u0080-\uFFFE] { return NimTokenTypes.KEYWORD; }
 
 // --- Identifiers ---
 <YYINITIAL> {LETTER} {IDENT_CONT}*        { return NimTokenTypes.IDENTIFIER; }
