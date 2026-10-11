@@ -26,15 +26,6 @@ class NimLibraryConfiguratorTest {
         assertNull(parseNimVersion(""))
     }
 
-    @Test fun `nimblePkgs2Dir uses home nimble when path blank`() {
-        val dir = nimblePkgs2Dir("")
-        assertTrue(dir.endsWith(Path.of(".nimble", "pkgs2")))
-    }
-
-    @Test fun `nimblePkgs2Dir resolves to sibling of bin dir`() {
-        assertEquals(Path.of("/home/user/.nimble/pkgs2"), nimblePkgs2Dir("/home/user/.nimble/bin"))
-    }
-
     @Test fun `parseNimbleDeps returns empty for non-existent pkgs2 dir`() {
         assertEquals(emptyList(), parseNimbleDeps("[]", Path.of("/nonexistent/pkgs2-xxx")))
     }

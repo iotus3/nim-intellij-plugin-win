@@ -1,18 +1,19 @@
 package com.laamella.nim.settings
 
 import com.intellij.openapi.util.SystemInfo
-import java.nio.file.Path
 
 /**
- * Factory for the default values of [NimSettings]. Exe name defaults include `.exe` on Windows
+ * Factory for the default values of [NimSettings]. The executable fields start blank: for the
+ * language server that means "nim check on save", for the others "look the bare name up on PATH".
  */
 object NimSettingsDefaults {
-    fun nimbleBinPath(): String = Path.of(System.getProperty("user.home"), ".nimble", "bin").toString()
-    fun nimlangserverExe(): String = exeName("nimlangserver")
-    fun nimlspExe(): String = exeName("nimlsp")
-    fun nimbleExe(): String = exeName("nimble")
-    fun nimprettyExe(): String = exeName("nimpretty")
-    fun nimExe(): String = exeName("nim")
+    fun nimSdkPath(): String = ""
+    fun nimbleToolchainPath(): String = ""
+    fun nimlangserverExe(): String = ""
+    fun nimbleExe(): String = ""
+    fun formatterExe(): String = ""
+    fun nimsuggestExe(): String = ""
 
-    private fun exeName(tool: String): String = if (SystemInfo.isWindows) "$tool.exe" else tool
+    /** Name used when an executable field is blank; `pathWithToolchain()` resolves it on PATH. */
+    fun exeName(tool: String): String = if (SystemInfo.isWindows) "$tool.exe" else tool
 }
