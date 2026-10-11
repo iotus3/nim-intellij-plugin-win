@@ -11,10 +11,10 @@
             <li>Code completion, parameter info, and hover documentation</li>
             <li>Go to definition, find usages, document highlight, go to symbol, and rename refactoring</li>
             <li>Inline diagnostics and inlay hints</li>
-            <li>Code formatting via <code>nimpretty</code> (Reformat Code / Ctrl+Alt+L)</li>
+            <li>Code formatting via <code>nph</code> or <code>nimpretty</code> (Reformat Code / Ctrl+Alt+L)</li>
             <li>Smart Enter indentation with 2-space default</li>
             <li>Syntax highlighting with bracket matching and auto-close</li>
-            <li>Run and test configurations for <code>.nim</code> files</li>
+            <li>Run a single file by right-clicking a <code>.nim</code> file (<code>nim r</code>), or run/test a project via its <code>.nimble</code> file</li>
             <li>New project wizard for Nim projects</li>
             <li>Nimble dependencies and Nim standard library added as navigable project libraries</li>
         </ul>
@@ -25,12 +25,23 @@
         <ol>
             <li>Install Nim and Nimble: <a href="https://nim-lang.org/install.html">nim-lang.org/install.html</a></li>
             <li>nimlangserver is auto-installed by the plugin if missing; or install manually: <code>nimble install -g --useSystemNim nimlangserver</code></li>
-            <li>(Optional) Install nimpretty for formatting: <code>nimble install nimpretty</code></li>
-            <li>Open <b>Settings → Languages &amp; Frameworks → Nim</b> and verify your toolchain path (where nim, nimble, etc. can be found.)</li>
+            <li>(Optional) Install nph or nimpretty for formatting: <code>nimble install nph</code></li>
+            <li>Open <b>Settings → Languages &amp; Frameworks → Nim</b> and set the Nim SDK path and the Nimble toolchain path; the tool executables are filled in automatically.</li>
             <li>Open any <code>.nim</code>, <code>.nims</code>, or <code>.nimble</code> file — LSP features activate automatically.</li>
         </ol>
     ]]></description>
     <change-notes><![CDATA[
+        <b>0.6.0</b>
+        <ul>
+            <li>Settings reworked around a <b>Nim SDK path</b> and a <b>Nimble toolchain path</b> (the Nimble bin
+                directory), both pickable with a directory chooser; the tool executables are detected as absolute paths</li>
+            <li>Tool detection searches the configured paths, then <code>where</code> (Windows) / <code>whereis</code> (Unix),
+                then common install locations and choosenim toolchains</li>
+            <li>Formatting supports <code>nph</code> (preferred) as well as <code>nimpretty</code>, with new
+                "Set to use nph" / "Set to use nimpretty" buttons</li>
+            <li>The Nim standard library is now taken from the SDK's own <code>lib/</code></li>
+            <li>Existing settings migrate automatically; a missing language server executable still means "nim check on save"</li>
+        </ul>
         <b>0.5.0</b>
         <ul>
             <li><code>nim check</code> problems (LSP-free mode) now appear in the Problems tool window, not just as editor markup</li>
