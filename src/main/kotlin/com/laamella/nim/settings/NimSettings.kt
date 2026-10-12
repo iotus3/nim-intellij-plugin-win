@@ -24,7 +24,6 @@ class NimSettings : PersistentStateComponent<NimSettings> {
     var nimlangserverExe: String = NimSettingsDefaults.nimlangserverExe()
     var nimbleExe: String = NimSettingsDefaults.nimbleExe()
     var formatterExe: String = NimSettingsDefaults.formatterExe()
-    var nimsuggestExe: String = NimSettingsDefaults.nimsuggestExe()
 
     /** Migration-only placeholder for the pre-0.6.0 single-directory setting; cleared after load. */
     var nimbleBinPath: String = ""
@@ -53,7 +52,6 @@ class NimSettings : PersistentStateComponent<NimSettings> {
     fun nimlangserver(): String = nimlangserverExe.trim().ifBlank { exeName("nimlangserver") }
     fun nimble(): String = nimbleExe.trim().ifBlank { exeName("nimble") }
     fun formatter(): String = formatterExe.trim().ifBlank { exeName("nimpretty") }
-    fun nimsuggest(): String = nimsuggestExe.trim().ifBlank { exeName("nimsuggest") }
 
     private fun exeName(base: String): String = NimSettingsDefaults.exeName(base)
 
@@ -77,7 +75,6 @@ class NimSettings : PersistentStateComponent<NimSettings> {
         nimbleToolchainPath = detected.toolchainPath
         nimbleExe = detected.nimble
         formatterExe = detected.formatter
-        nimsuggestExe = detected.nimsuggest
         if (overwriteLangServer) nimlangserverExe = detected.langServer
     }
 
@@ -89,13 +86,12 @@ class NimSettings : PersistentStateComponent<NimSettings> {
     fun healIfNeeded() {
         if (!healed.compareAndSet(false, true)) return
         val langServerNeeded = pendingLangServerDetection || !loadedFromState
-        if (!langServerNeeded && nimSdkPath.isNotBlank() && nimbleExe.isNotBlank() && nimsuggestExe.isNotBlank()) return
+        if (!langServerNeeded && nimSdkPath.isNotBlank() && nimbleExe.isNotBlank()) return
         runCatching {
             val detected = NimToolchainDetector.detect(nimSdkPath, nimbleToolchainPath)
             if (nimSdkPath.isBlank()) nimSdkPath = detected.sdkPath
             if (nimbleExe.isBlank()) nimbleExe = detected.nimble
             if (formatterExe.isBlank()) formatterExe = detected.formatter
-            if (nimsuggestExe.isBlank()) nimsuggestExe = detected.nimsuggest
             if (langServerNeeded && nimlangserverExe.isBlank()) {
                 // The expected path of a not-yet-installed server still enables the LSP and its
                 // auto-install, matching the pre-0.6.0 default.
@@ -139,7 +135,6 @@ class NimSettings : PersistentStateComponent<NimSettings> {
         // Other bare names are not usable as absolute paths; healIfNeeded() refills them.
         nimbleExe = nimbleExe.absoluteOrBlank()
         formatterExe = formatterExe.absoluteOrBlank()
-        nimsuggestExe = nimsuggestExe.absoluteOrBlank()
     }
 
     /** Keeps absolute paths as-is; a legacy bare file name becomes blank for [healIfNeeded] to refill. */

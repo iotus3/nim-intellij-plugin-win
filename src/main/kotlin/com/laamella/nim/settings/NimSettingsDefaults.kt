@@ -12,7 +12,6 @@ object NimSettingsDefaults {
     fun nimlangserverExe(): String = ""
     fun nimbleExe(): String = ""
     fun formatterExe(): String = ""
-    fun nimsuggestExe(): String = ""
 
     /** Name used when an executable field is blank; `pathWithToolchain()` resolves it on PATH. */
     fun exeName(tool: String): String = if (SystemInfo.isWindows) "$tool.exe" else tool

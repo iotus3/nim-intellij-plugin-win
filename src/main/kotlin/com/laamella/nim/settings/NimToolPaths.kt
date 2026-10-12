@@ -10,7 +10,6 @@ enum class NimTool(val variants: List<String>) {
     LANG_SERVER(listOf("nimlangserver", "nimlsp")),
     NIMBLE(listOf("nimble")),
     FORMATTER(listOf("nph", "nimpretty")),
-    NIMSUGGEST(listOf("nimsuggest")),
 }
 
 enum class SearchDir { SDK_BIN, TOOLCHAIN_BIN, PKGS2 }
@@ -19,7 +18,6 @@ private val SEARCH_ORDER: Map<NimTool, List<SearchDir>> = mapOf(
     NimTool.LANG_SERVER to listOf(SearchDir.TOOLCHAIN_BIN, SearchDir.PKGS2, SearchDir.SDK_BIN),
     NimTool.NIMBLE to listOf(SearchDir.SDK_BIN, SearchDir.TOOLCHAIN_BIN, SearchDir.PKGS2),
     NimTool.FORMATTER to listOf(SearchDir.TOOLCHAIN_BIN, SearchDir.PKGS2, SearchDir.SDK_BIN),
-    NimTool.NIMSUGGEST to listOf(SearchDir.SDK_BIN, SearchDir.TOOLCHAIN_BIN, SearchDir.PKGS2),
 )
 
 /**
@@ -144,10 +142,8 @@ object NimToolPaths {
         isWindows: Boolean = SystemInfo.isWindows,
     ): String {
         val base = when (tool) {
-            NimTool.NIMBLE, NimTool.NIMSUGGEST ->
-                pathOrNull(sdkPath)?.resolve("bin")
-            else ->
-                pathOrNull(toolchainPath)
+            NimTool.NIMBLE -> pathOrNull(sdkPath)?.resolve("bin")
+            else -> pathOrNull(toolchainPath)
         } ?: Path.of("")
         return base.resolve(variant + if (isWindows) ".exe" else "").toString()
     }

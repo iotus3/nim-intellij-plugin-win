@@ -24,15 +24,16 @@ class NimToolPathsTest {
         assertTrue(langserver in 0 until nimlsp, "nimlangserver ($langserver) must precede nimlsp ($nimlsp)")
     }
 
-    @Test fun `nimble and nimsuggest are searched in sdk bin first`() {
+    @Test fun `nimble is searched in sdk bin first`() {
         assertEquals(
             Path.of("/sdk", "bin", "nimble.exe"),
             NimToolPaths.candidates(NimTool.NIMBLE, "/sdk", "/tc", isWindows = true).first()
         )
-        assertEquals(
-            Path.of("/sdk", "bin", "nimsuggest.exe"),
-            NimToolPaths.candidates(NimTool.NIMSUGGEST, "/sdk", "/tc", isWindows = true).first()
-        )
+    }
+
+    // Guard: nimsuggest was a dead setting and must not return.
+    @Test fun `nimsuggest is not a tracked tool`() {
+        assertTrue(NimTool.entries.none { it.variants.contains("nimsuggest") })
     }
 
     @Test fun `empty hints produce no candidates`() {

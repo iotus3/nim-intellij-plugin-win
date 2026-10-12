@@ -23,12 +23,10 @@ class NimSettingsTest {
             it.nimlangserverExe = "/x/nimlangserver"
             it.nimbleExe = "/x/nimble"
             it.formatterExe = "/x/nph"
-            it.nimsuggestExe = "/x/nimsuggest"
         }
         assertEquals("/x/nimlangserver", settings.nimlangserver())
         assertEquals("/x/nimble", settings.nimble())
         assertEquals("/x/nph", settings.formatter())
-        assertEquals("/x/nimsuggest", settings.nimsuggest())
     }
 
     @Test fun `exe getters fall back to bare names when blank`() {
@@ -36,7 +34,6 @@ class NimSettingsTest {
         assertEquals("nimlangserver$ext", settings.nimlangserver())
         assertEquals("nimble$ext", settings.nimble())
         assertEquals("nimpretty$ext", settings.formatter())
-        assertEquals("nimsuggest$ext", settings.nimsuggest())
     }
 
     @Test fun `effective toolchain path defaults to home nimble bin`() {
@@ -89,13 +86,12 @@ class NimSettingsTest {
         settings.applyDetected(
             NimToolchainDetector.Detected(
                 sdkPath = "/sdk", toolchainPath = "/tc",
-                langServer = "/ls", nimble = "/n", formatter = "/f", nimsuggest = "/ns"
+                langServer = "/ls", nimble = "/n", formatter = "/f"
             ),
             overwriteLangServer = false
         )
         assertEquals("", settings.nimlangserverExe)
         assertEquals("/n", settings.nimbleExe)
         assertEquals("/f", settings.formatterExe)
-        assertEquals("/ns", settings.nimsuggestExe)
     }
 }
