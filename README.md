@@ -66,9 +66,9 @@ Then install the ZIP from `build/distributions/` via **Settings → Plugins → 
 
 - **Nim SDK path** — Nim installation root, containing `bin/` and `lib/`. Pick it with the browse button.
 - **Nim toolchain path** — Nimble's `bin` directory holding the installed tools (usually `~/.nimble/bin`). Pick it with the browse button.
-- **nimlangserver or nimlsp executable name**, **nimble**, **nph or nimpretty**, **nimsuggest** — absolute paths, filled in automatically from the two paths above. `nimlangserver` wins over `nimlsp`, and `nph` wins over `nimpretty`.
+- **nimlangserver or nimlsp executable name**, **nimble**, **nph or nimpretty** — absolute paths, filled in automatically from the two paths above. `nimlangserver` wins over `nimlsp`, and `nph` wins over `nimpretty`.
 
-Selecting either path auto-fills the executables. **Auto-detect executables** re-runs the search, and **Reset to Defaults** re-detects everything. Detection looks at the configured paths first, then `where` (Windows) / `whereis` (Unix), then common install locations and choosenim toolchains — if it comes up empty, browse to the paths manually.
+Selecting either path auto-fills the executables. **Auto-detect executables** re-runs the search, and **Reset to Defaults** re-detects everything. Detection looks at the configured paths first, then `where` (Windows) / `which` (Unix), then common install locations and choosenim toolchains — if it comes up empty, browse to the paths manually.
 
 Leave the language server executable empty (button: **Set to use nim check on save**) to skip the LSP server entirely; the plugin then runs `nim check` on each save and marks the results in the editor. **Set to use nph** / **Set to use nimpretty** switch the formatter.
 

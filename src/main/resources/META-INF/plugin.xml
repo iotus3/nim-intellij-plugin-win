@@ -31,6 +31,14 @@
         </ol>
     ]]></description>
     <change-notes><![CDATA[
+        <b>0.6.1</b>
+        <ul>
+            <li>Removed the unused <code>nimsuggest</code> executable setting; it was detected and shown
+                but never invoked. Nim's tooling is reached through <code>nim</code> and the language server</li>
+            <li>Unix tool detection now uses <code>which</code> instead of <code>whereis</code>, which fixes
+                SDK auto-detection on macOS (its <code>whereis</code> prints bare paths without the
+                <code>nim:</code> label the parser expected)</li>
+        </ul>
         <b>0.6.0</b>
         <ul>
             <li>Settings reworked around a <b>Nim SDK path</b> and a <b>Nimble toolchain path</b> (the Nimble bin
