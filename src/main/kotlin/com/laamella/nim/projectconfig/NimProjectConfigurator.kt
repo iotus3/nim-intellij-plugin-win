@@ -8,6 +8,7 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.laamella.nim.settings.NimSettings
 
 enum class NimDirKind { SRC, TEST, EXCLUDE }
 
@@ -17,6 +18,8 @@ enum class NimDirKind { SRC, TEST, EXCLUDE }
  */
 class NimProjectConfigurator : ProjectActivity {
     override suspend fun execute(project: Project) {
+        // One-shot: repair settings left incomplete by older plugin versions.
+        NimSettings.getInstance().healIfNeeded()
         ApplicationManager.getApplication().invokeLater { configureNimProject(project) }
     }
 }

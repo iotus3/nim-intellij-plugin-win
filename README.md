@@ -20,7 +20,7 @@ Provided by the plugin:
   - srcDir, binDir, tests/
   - external libraries list
   - standard library list
-- Code formatting via `nimpretty` (Reformat Code / Ctrl+Alt+L)
+- Code formatting via `nph` or `nimpretty` (Reformat Code / Ctrl+Alt+L)
 - Comment/uncomment (Ctrl+/)
 - Auto-close quotes and brackets
 - Runner/test runner. _Right-click a `.nimble` file for "nimble run"/"nimble test", or any `.nim` file for "nim r"._
@@ -48,7 +48,7 @@ Provided by nimlangserver over LSP:
 - [Nim and Nimble](https://nim-lang.org/install.html) installed
 - [nimlangserver](https://github.com/nim-lang/langserver) — auto-installed by the plugin if missing; or install manually: `nimble install nimlangserver`
   - alternatively, use [nimlsp](https://github.com/PMunch/nimlsp)
-- [nimpretty](https://nim-lang.org/docs/nimpretty.html) for formatting: `nimble install nimpretty` (optional)
+- [nph](https://github.com/arnetheduck/nph) or [nimpretty](https://nim-lang.org/docs/nimpretty.html) for formatting: `nimble install nph` (optional)
 
 ## Installation
 
@@ -63,10 +63,14 @@ Then install the ZIP from `build/distributions/` via **Settings → Plugins → 
 ## Configuration
 
 **Settings → Languages & Frameworks → Nim**:
-- **Nim toolchain path** — directory containing the toolchain binaries (default: `/home/<username>/.nimble/bin`)
-- **nimlangserver / nimble / nimpretty executable name** — filename of each tool within that directory (defaults: `nimlangserver`, `nimble`, `nimpretty`)
 
-Leave the language server executable name empty (button: **Set to use nim check on save**) to skip the LSP server entirely; the plugin then runs `nim check` on each save and marks the results in the editor.
+- **Nim SDK path** — Nim installation root, containing `bin/` and `lib/`. Pick it with the browse button.
+- **Nim toolchain path** — Nimble's `bin` directory holding the installed tools (usually `~/.nimble/bin`). Pick it with the browse button.
+- **nimlangserver or nimlsp executable name**, **nimble**, **nph or nimpretty** — absolute paths, filled in automatically from the two paths above. `nimlangserver` wins over `nimlsp`, and `nph` wins over `nimpretty`.
+
+Selecting either path auto-fills the executables. **Auto-detect executables** re-runs the search, and **Reset to Defaults** re-detects everything. Detection looks at the configured paths first, then `where` (Windows) / `which` (Unix), then common install locations and choosenim toolchains — if it comes up empty, browse to the paths manually.
+
+Leave the language server executable empty (button: **Set to use nim check on save**) to skip the LSP server entirely; the plugin then runs `nim check` on each save and marks the results in the editor. **Set to use nph** / **Set to use nimpretty** switch the formatter.
 
 ## Contributing
 

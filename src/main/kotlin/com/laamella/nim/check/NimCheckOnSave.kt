@@ -126,10 +126,7 @@ object NimCheckOnSave {
             val pb = ProcessBuilder(settings.nim(), "check", file.path)
                 .directory(File(project.guessProjectDir()?.path ?: "."))
                 .redirectErrorStream(true)
-            if (settings.nimbleBinPath.isNotBlank()) {
-                val currentPath = System.getenv("PATH") ?: ""
-                pb.environment()["PATH"] = "${settings.nimbleBinPath}${File.pathSeparator}$currentPath"
-            }
+            pb.environment()["PATH"] = settings.pathWithToolchain()
             val process = try {
                 pb.start()
             } catch (_: IOException) {
@@ -137,7 +134,7 @@ object NimCheckOnSave {
                     NotificationGroupManager.getInstance()
                         .getNotificationGroup("Nim")
                         .createNotification(
-                            "nim not found — check the Nim toolchain path in Settings → Languages & Frameworks → Nim",
+                            "nim not found — set the Nim SDK path in Settings → Languages & Frameworks → Nim",
                             NotificationType.WARNING
                         )
                         .notify(project)

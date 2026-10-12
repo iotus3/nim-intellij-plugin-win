@@ -11,8 +11,8 @@ import java.io.IOException
 import java.nio.file.Files
 
 /**
- * Delegates Reformat Code (Ctrl+Alt+L) to nimpretty by writing the file to a temp file,
- * running nimpretty on it, and replacing the document contents.
+ * Delegates Reformat Code (Ctrl+Alt+L) to nph (or nimpretty) by writing the file to a temp file,
+ * running the formatter on it, and replacing the document contents.
  * [indent] is a no-op stub — Enter-key indentation is handled by [NimLineIndentProvider],
  * not by ExternalFormatProcessor (which is only called during explicit reformat operations).
  */
@@ -34,11 +34,11 @@ class NimFormatProcessor : ExternalFormatProcessor {
         try {
             tempFile.writeText(original)
             val process = try {
-                ProcessBuilder(NimSettings.getInstance().nimpretty(), tempFile.absolutePath).redirectErrorStream(true).start()
+                ProcessBuilder(NimSettings.getInstance().formatter(), tempFile.absolutePath).redirectErrorStream(true).start()
             } catch (_: IOException) {
                 NotificationGroupManager.getInstance()
                     .getNotificationGroup("Nim")
-                    .createNotification("nimpretty not found — install with: nimble install nimpretty", NotificationType.WARNING)
+                    .createNotification("nph/nimpretty not found — install with: nimble install nph", NotificationType.WARNING)
                     .notify(source.project)
                 return null
             }

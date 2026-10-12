@@ -6,7 +6,6 @@ import com.intellij.execution.process.ProcessHandlerFactory
 import com.intellij.execution.process.ProcessTerminatedListener
 import com.intellij.execution.runners.ExecutionEnvironment
 import com.laamella.nim.settings.NimSettings
-import java.io.File
 
 class NimCommandLineState(
     environment: ExecutionEnvironment,
@@ -19,13 +18,13 @@ class NimCommandLineState(
 
     private fun buildCommandLine(): GeneralCommandLine {
         val settings = NimSettings.getInstance()
-        val cmd = GeneralCommandLine(settings.nim(), "r", config.filePath)
+        return GeneralCommandLine(settings.nim())
             .withWorkDirectory(config.workingDirectory)
             .withCharset(Charsets.UTF_8)
-        if (settings.nimbleBinPath.isNotBlank()) {
-            val currentPath = System.getenv("PATH") ?: ""
-            cmd.withEnvironment("PATH", "${settings.nimbleBinPath}${File.pathSeparator}$currentPath")
-        }
-        return cmd
+            .withEnvironment("PATH", settings.pathWithToolchain())
+            .withParameters(nimRunFileParameters(config.filePath))
     }
 }
+
+/** `nim r <file>` compiles and runs a single Nim file. */
+internal fun nimRunFileParameters(filePath: String): List<String> = listOf("r", filePath)

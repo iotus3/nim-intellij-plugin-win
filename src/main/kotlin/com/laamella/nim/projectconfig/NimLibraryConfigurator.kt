@@ -9,6 +9,7 @@ import com.intellij.platform.backend.workspace.workspaceModel
 import com.intellij.platform.workspace.jps.entities.*
 import com.intellij.workspaceModel.ide.legacyBridge.LegacyBridgeJpsEntitySourceFactory
 import com.laamella.nim.settings.NimSettings
+import com.laamella.nim.settings.NimToolPaths
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
@@ -27,7 +28,7 @@ fun configureNimLibraries(project: Project) {
             val urlManager = workspaceModel.getVirtualFileUrlManager()
             val entitySource = LegacyBridgeJpsEntitySourceFactory.getInstance(project)
                 .createEntitySourceForProjectLibrary(null)
-            val nimblePkgsDir = nimblePkgs2Dir(settings.nimbleBinPath)
+            val nimblePkgsDir = settings.pkgs2Dir()
             val nimblePkgsDirUrl = VfsUtilCore.pathToUrl(nimblePkgsDir.toString())
 
             ApplicationManager.getApplication().runWriteAction {
@@ -87,15 +88,12 @@ private fun runNimbleDeps(settings: NimSettings, projectDir: String): List<NimDe
     val pb = ProcessBuilder(settings.nimble(), "deps", "--format:json")
         .directory(File(projectDir))
         .redirectError(ProcessBuilder.Redirect.DISCARD)
-    if (settings.nimbleBinPath.isNotBlank()) {
-        val currentPath = System.getenv("PATH") ?: ""
-        pb.environment()["PATH"] = "${settings.nimbleBinPath}${File.pathSeparator}$currentPath"
-    }
+    pb.environment()["PATH"] = settings.pathWithToolchain()
     val process = pb.start()
     val output = process.inputStream.bufferedReader().readText()
     if (process.waitFor() != 0) return null
     val json = extractJsonArray(output) ?: return null
-    return parseNimbleDeps(json, nimblePkgs2Dir(settings.nimbleBinPath))
+    return parseNimbleDeps(json, settings.pkgs2Dir())
 }
 
 /**
@@ -221,9 +219,12 @@ fun configureNimStdlib(project: Project) {
     }
 }
 
+/** Prefers the SDK's own `lib/`, falling back to a stdlib installed under nimble's pkgs2. */
 private fun findNimStdlibDir(settings: NimSettings): Pair<Path, String>? {
     val version = runNimVersion(settings) ?: return null
-    val pkgs2 = nimblePkgs2Dir(settings.nimbleBinPath)
+    val sdkLib = NimToolPaths.pathOrNull(settings.nimSdkPath)?.resolve("lib")
+    if (sdkLib != null && Files.isRegularFile(sdkLib.resolve("system.nim"))) return sdkLib to version
+    val pkgs2 = settings.pkgs2Dir()
     if (!Files.isDirectory(pkgs2)) return null
     val nimDir = Files.newDirectoryStream(pkgs2, "nim-$version-*").use { it.firstOrNull() } ?: return null
     val libDir = nimDir.resolve("lib")
@@ -233,18 +234,9 @@ private fun findNimStdlibDir(settings: NimSettings): Pair<Path, String>? {
 private fun runNimVersion(settings: NimSettings): String? = runCatching {
     val pb = ProcessBuilder(settings.nim(), "--version")
         .redirectError(ProcessBuilder.Redirect.DISCARD)
-    if (settings.nimbleBinPath.isNotBlank()) {
-        val currentPath = System.getenv("PATH") ?: ""
-        pb.environment()["PATH"] = "${settings.nimbleBinPath}${File.pathSeparator}$currentPath"
-    }
+    pb.environment()["PATH"] = settings.pathWithToolchain()
     pb.start().inputStream.bufferedReader().readLine()?.let { parseNimVersion(it) }
 }.getOrNull()
 
 internal fun parseNimVersion(firstLine: String): String? =
     Regex("""Version (\d+\.\d+\.\d+)""").find(firstLine)?.groupValues?.get(1)
-
-internal fun nimblePkgs2Dir(nimbleBinPath: String): Path =
-    if (nimbleBinPath.isNotBlank())
-        Path.of(nimbleBinPath).parent.resolve("pkgs2")
-    else
-        Path.of(System.getProperty("user.home"), ".nimble", "pkgs2")

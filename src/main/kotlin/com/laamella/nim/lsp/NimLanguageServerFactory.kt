@@ -10,19 +10,14 @@ import com.redhat.devtools.lsp4ij.client.features.LSPClientFeatures
 import com.redhat.devtools.lsp4ij.installation.ServerInstaller
 import com.redhat.devtools.lsp4ij.server.OSProcessStreamConnectionProvider
 import com.redhat.devtools.lsp4ij.server.StreamConnectionProvider
-import java.io.File
 import java.nio.file.Path
 
 class NimLanguageServerFactory : LanguageServerFactory {
     override fun createConnectionProvider(project: Project): StreamConnectionProvider {
         val settings = NimSettings.getInstance()
-        val currentPath = System.getenv("PATH") ?: ""
-        val processPath = if (settings.nimbleBinPath.isNotBlank())
-            "${settings.nimbleBinPath}${File.pathSeparator}$currentPath"
-        else currentPath
         val generalCommandLine = GeneralCommandLine(settings.nimlangserver())
             .withWorkingDirectory(Path.of(project.guessProjectDir()?.path ?: "."))
-            .withEnvironment("PATH", processPath)
+            .withEnvironment("PATH", settings.pathWithToolchain())
         return OSProcessStreamConnectionProvider(generalCommandLine)
     }
 
