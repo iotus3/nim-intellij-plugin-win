@@ -14,7 +14,6 @@ object NimToolchainDetector {
         val langServer: String,
         val nimble: String,
         val formatter: String,
-        val nimsuggest: String,
     )
 
     fun defaultToolchainPath(): String =
@@ -29,21 +28,35 @@ object NimToolchainDetector {
             .map(Path::of)
             .toList()
 
-    internal fun parseWhereisOutput(output: String, tool: String): List<Path> =
-        output.substringAfter(':', "")
-            .split(Regex("\\s+"))
-            .map { it.trim() }
-            .filter { it.isNotBlank() }
-            .filterNot { it.endsWith(".gz") || it.contains("/man/") }
-            .filter { Path.of(it).name.removeSuffix(".exe") == tool }
-            .map(Path::of)
+    /**
+     * `which <tool>` prints one absolute path per line, or nothing when the tool is missing.
+     * [locateOnPath] merges stderr into stdout, so failure messages such as
+     * "which: no nim in (/usr/bin:/bin)" arrive here too and are dropped, as are bare names echoed
+     * back by broken `which` implementations.
+     *
+     * The check is `startsWith("/")` rather than `Path.isAbsolute()`: `which` only runs on Unix,
+     * but these tests execute on any host, and `Path.of("/usr/bin/nim").isAbsolute` is *false* on
+     * a Windows JVM, which would make the parser host-dependent. Unix `which` always emits
+     * `/`-rooted paths; a relative PATH entry yields a relative result that is intentionally
+     * dropped (the known-roots / choosenim fallbacks cover it).
+     *
+     * macOS's `whereis` printed a bare "/usr/bin/nim" with no "nim:" label, so the previous
+     * label-based parser (`substringAfter(':')`) could never match and detection silently fell
+     * back to the known install roots. `which` is consistent across Linux and macOS.
+     */
+    internal fun parseWhichOutput(output: String): List<Path> =
+        output.lineSequence()
+            .map { it.trim().removeSurrounding("\"") }
+            .filter { it.startsWith("/") }
+            .mapNotNull { runCatching { Path.of(it) }.getOrNull() }
+            .toList()
 
     internal fun locateOnPath(tool: String): List<Path> = try {
-        val command = if (SystemInfo.isWindows) listOf("where", tool) else listOf("whereis", tool)
+        val command = if (SystemInfo.isWindows) listOf("where", tool) else listOf("which", tool)
         val process = ProcessBuilder(command).redirectErrorStream(true).start()
         val output = process.inputStream.bufferedReader().readText()
         process.waitFor()
-        if (SystemInfo.isWindows) parseWhereOutput(output) else parseWhereisOutput(output, tool)
+        if (SystemInfo.isWindows) parseWhereOutput(output) else parseWhichOutput(output)
     } catch (_: Exception) {
         emptyList()
     }
@@ -112,7 +125,7 @@ object NimToolchainDetector {
         val trimmed = hint.trim()
         NimToolPaths.pathOrNull(trimmed)?.takeIf { isDirectory(it) }?.let { return trimmed }
 
-        for (tool in listOf("nim", "nimble", "nimsuggest")) {
+        for (tool in listOf("nim", "nimble")) {
             for (exe in runWhich(tool)) {
                 sdkFromExe(exe, isDirectory, isFile)?.let { return it.toString() }
             }
@@ -153,7 +166,6 @@ object NimToolchainDetector {
             langServer = path(NimTool.LANG_SERVER),
             nimble = path(NimTool.NIMBLE),
             formatter = path(NimTool.FORMATTER),
-            nimsuggest = path(NimTool.NIMSUGGEST),
         )
     }
 }

@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 
 class NimToolchainDetectorTest {
 
-    // ---- where / whereis parsing ----------------------------------------
+    // ---- where / which parsing ------------------------------------------
 
     @Test fun `parseWhereOutput keeps windows absolute paths and strips quotes`() {
         val output = "INFO: Could not find files for the given pattern.\r\n" +
@@ -25,28 +25,25 @@ class NimToolchainDetectorTest {
         assertEquals(emptyList(), NimToolchainDetector.parseWhereOutput("INFO: Could not find files.\n"))
     }
 
-    @Test fun `parseWhereisOutput strips label and man pages`() {
-        val output = "nim: /usr/bin/nim /usr/share/man/man1/nim.1.gz\n"
+    // Regression for the macOS bug: `whereis` there prints a bare path with no "nim:" label.
+    @Test fun `parseWhichOutput keeps a macOS style bare path`() {
         assertEquals(
             listOf(Path.of("/usr/bin/nim")),
-            NimToolchainDetector.parseWhereisOutput(output, "nim")
+            NimToolchainDetector.parseWhichOutput("/usr/bin/nim\n")
         )
     }
 
-    @Test fun `parseWhereisOutput handles multiline and empty payload`() {
+    @Test fun `parseWhichOutput handles multiline and strips quotes`() {
         assertEquals(
-            listOf(Path.of("/usr/local/bin/nim")),
-            NimToolchainDetector.parseWhereisOutput("nim:\n/usr/local/bin/nim\n", "nim")
+            listOf(Path.of("/usr/local/bin/nim"), Path.of("/opt/nim/bin/nim")),
+            NimToolchainDetector.parseWhichOutput("/usr/local/bin/nim\n\"/opt/nim/bin/nim\"\n")
         )
-        assertEquals(emptyList(), NimToolchainDetector.parseWhereisOutput("nim:\n", "nim"))
+        assertEquals(emptyList(), NimToolchainDetector.parseWhichOutput(""))
     }
 
-    @Test fun `parseWhereisOutput ignores entries for other tools`() {
-        val output = "nim: /usr/bin/nimble /usr/bin/nim\n"
-        assertEquals(
-            listOf(Path.of("/usr/bin/nim")),
-            NimToolchainDetector.parseWhereisOutput(output, "nim")
-        )
+    @Test fun `parseWhichOutput ignores not-found messages and bare names`() {
+        assertEquals(emptyList(), NimToolchainDetector.parseWhichOutput("which: no nim in (/usr/bin:/bin)\n"))
+        assertEquals(emptyList(), NimToolchainDetector.parseWhichOutput("nim\n"))
     }
 
     // ---- SDK derivation -------------------------------------------------
@@ -188,7 +185,7 @@ class NimToolchainDetectorTest {
             Files.createDirectories(sdk.resolve("bin"))
             Files.createDirectories(sdk.resolve("lib"))
             Files.writeString(sdk.resolve("lib/system.nim"), "")
-            for (tool in listOf("nim", "nimble", "nimpretty", "nimsuggest")) {
+            for (tool in listOf("nim", "nimble", "nimpretty")) {
                 Files.writeString(sdk.resolve("bin/$tool.exe"), "")
             }
             val nimbleHome = root.resolve(".nimble")
@@ -207,7 +204,6 @@ class NimToolchainDetectorTest {
             assertTrue(detected.langServer.endsWith("nimlangserver.exe"))
             assertTrue(detected.langServer.contains("pkgs2"), "got ${detected.langServer}")
             assertTrue(detected.nimble.endsWith("nimble.exe"))
-            assertTrue(detected.nimsuggest.endsWith("nimsuggest.exe"))
             // nimpretty ships in the SDK bin.
             assertTrue(detected.formatter.endsWith("nimpretty.exe"))
         } finally {

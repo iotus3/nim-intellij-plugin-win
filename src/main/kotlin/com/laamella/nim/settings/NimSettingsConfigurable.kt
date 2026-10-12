@@ -20,7 +20,6 @@ class NimSettingsConfigurable : Configurable {
     private var nimlangserverExe: JTextField? = null
     private var nimbleExe: JTextField? = null
     private var formatterExe: JTextField? = null
-    private var nimsuggestExe: JTextField? = null
 
     /** True after an explicit "nim check on save" choice, so auto-fill leaves the server blank. */
     private var langServerDisabled = false
@@ -39,7 +38,6 @@ class NimSettingsConfigurable : Configurable {
         nimlangserverExe = JTextField()
         nimbleExe = JTextField()
         formatterExe = JTextField()
-        nimsuggestExe = JTextField()
 
         return panel {
             group("Paths") {
@@ -51,7 +49,6 @@ class NimSettingsConfigurable : Configurable {
                 row("nimlangserver or nimlsp executable name:") { cell(nimlangserverExe!!).align(AlignX.FILL) }
                 row("nimble executable name:") { cell(nimbleExe!!).align(AlignX.FILL) }
                 row("nph or nimpretty executable name:") { cell(formatterExe!!).align(AlignX.FILL) }
-                row("nimsuggest executable name:") { cell(nimsuggestExe!!).align(AlignX.FILL) }
                 row { button("Auto-detect executables") { autoDetectExecutables(nonDestructive = true) } }
             }
             @Suppress("DialogTitleCapitalization")
@@ -111,17 +108,16 @@ class NimSettingsConfigurable : Configurable {
     private fun currentToolchain(): String =
         toolchainPath?.text?.trim().orEmpty().ifBlank { NimToolchainDetector.defaultToolchainPath() }
 
-    /** Detection reads directories and forks `where`/`whereis`; nothing may escape into the EDT. */
+    /** Detection reads directories and forks `where`/`which`; nothing may escape into the EDT. */
     private fun detectSafely(sdk: String = "", toolchain: String = ""): NimToolchainDetector.Detected =
         runCatching { NimToolchainDetector.detect(sdk, toolchain) }
-            .getOrElse { NimToolchainDetector.Detected(sdk, toolchain, "", "", "", "") }
+            .getOrElse { NimToolchainDetector.Detected(sdk, toolchain, "", "", "") }
 
     /** With [nonDestructive] only blank fields are filled, preserving manual edits. */
     private fun autoDetectExecutables(nonDestructive: Boolean) {
         val detected = detectSafely(currentSdk(), currentToolchain())
         fill(nimbleExe, detected.nimble, nonDestructive)
         fill(formatterExe, detected.formatter, nonDestructive)
-        fill(nimsuggestExe, detected.nimsuggest, nonDestructive)
         if (!langServerDisabled) fill(nimlangserverExe, detected.langServer, nonDestructive)
         // Echo the resolved roots into still-blank fields so the user sees what was detected.
         fill(sdkPath?.textField, detected.sdkPath, nonDestructive = true)
@@ -158,7 +154,6 @@ class NimSettingsConfigurable : Configurable {
         nimlangserverExe?.text = detected.langServer
         nimbleExe?.text = detected.nimble
         formatterExe?.text = detected.formatter
-        nimsuggestExe?.text = detected.nimsuggest
         langServerDisabled = detected.langServer.isBlank()
     }
 
@@ -171,7 +166,6 @@ class NimSettingsConfigurable : Configurable {
             || nimlangserverExe?.text?.trim() != s.nimlangserverExe
             || nimbleExe?.text?.trim() != s.nimbleExe
             || formatterExe?.text?.trim() != s.formatterExe
-            || nimsuggestExe?.text?.trim() != s.nimsuggestExe
     }
 
     override fun apply() {
@@ -184,10 +178,9 @@ class NimSettingsConfigurable : Configurable {
         s.nimlangserverExe = nimlangserverExe?.text?.trim().orEmpty()
         s.formatterExe = formatterExe?.text?.trim().orEmpty()
 
-        // nimble and nimsuggest are always needed; the server may legitimately stay blank.
+        // nimble is always needed; the server may legitimately stay blank.
         val detected by lazy { detectSafely(s.nimSdkPath, s.nimbleToolchainPath) }
         s.nimbleExe = nimbleExe?.text?.trim().orEmpty().ifBlank { detected.nimble }
-        s.nimsuggestExe = nimsuggestExe?.text?.trim().orEmpty().ifBlank { detected.nimsuggest }
         if (s.formatterExe.isBlank()) s.formatterExe = detected.formatter
 
         NimCheckOnSave.resetMissingNimWarning()
@@ -211,11 +204,10 @@ class NimSettingsConfigurable : Configurable {
         nimlangserverExe?.text = s.nimlangserverExe
         nimbleExe?.text = s.nimbleExe
         formatterExe?.text = s.formatterExe
-        nimsuggestExe?.text = s.nimsuggestExe
         langServerDisabled = s.nimlangserverExe.isBlank()
         // Nothing configured yet: offer detected values. The language server is included so a fresh
         // install keeps the pre-0.6.0 behaviour (LSP enabled, nimlangserver auto-installed when missing).
-        if (s.nimSdkPath.isBlank() && s.nimbleExe.isBlank() && s.nimsuggestExe.isBlank()) {
+        if (s.nimSdkPath.isBlank() && s.nimbleExe.isBlank()) {
             langServerDisabled = false
             autoDetectExecutables(nonDestructive = true)
             // Not installed yet: fall back to the expected path, exactly the pre-0.6.0 default.
@@ -233,6 +225,5 @@ class NimSettingsConfigurable : Configurable {
         nimlangserverExe = null
         nimbleExe = null
         formatterExe = null
-        nimsuggestExe = null
     }
 }
